@@ -28,7 +28,7 @@ export function AppLayout() {
         <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center mr-3 text-white shadow-sm">
           <span className="font-bold text-sm tracking-tight text-white">CH</span>
         </div>
-        <span className="text-lg font-bold tracking-tight text-white">Hero AI</span>
+        <span className="text-lg font-bold tracking-tight text-white">CityMind AI</span>
       </div>
       <div className="flex-1 overflow-y-auto py-6">
         <nav className="grid items-start px-4 text-sm font-medium gap-1">
@@ -94,7 +94,7 @@ export function AppLayout() {
            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white">
              <span className="font-bold text-sm">CH</span>
            </div>
-          <span>Community Hero</span>
+          <span>CityMind AI</span>
         </div>
         <Sheet>
           <SheetTrigger render={<Button variant="ghost" size="icon" />}>

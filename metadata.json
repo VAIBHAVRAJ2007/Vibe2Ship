@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "CityMind AI",
+  "description": "Civic issue reporting and analytics platform.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

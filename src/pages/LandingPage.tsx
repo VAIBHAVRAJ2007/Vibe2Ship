@@ -10,7 +10,7 @@ export default function LandingPage() {
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3 shadow-sm transition-transform group-hover:scale-105">
             <span className="font-bold text-sm tracking-tight">CH</span>
           </div>
-          <span className="font-bold tracking-tight text-slate-800 text-xl">Hero AI</span>
+          <span className="font-bold tracking-tight text-slate-800 text-xl">CityMind AI</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link to="/login">
@@ -78,7 +78,7 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="flex py-8 items-center justify-center px-4 md:px-6 border-t border-slate-200 bg-white">
-        <p className="text-sm font-medium text-slate-500 tracking-tight">© 2026 Community Hero AI. Public Sector Platform.</p>
+        <p className="text-sm font-medium text-slate-500 tracking-tight">© 2026 CityMind AI. Public Sector Platform.</p>
       </footer>
     </div>
   );
