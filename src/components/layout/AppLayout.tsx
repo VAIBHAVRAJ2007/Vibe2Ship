@@ -26,7 +26,7 @@ export function AppLayout() {
     <div className="flex h-full flex-col bg-slate-900 text-slate-300">
       <div className="flex h-[72px] items-center px-6 border-b border-slate-800">
         <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center mr-3 text-white shadow-sm">
-          <span className="font-bold text-sm tracking-tight text-white">CH</span>
+          <span className="font-bold text-sm tracking-tight text-white">CM</span>
         </div>
         <span className="text-lg font-bold tracking-tight text-white">CityMind AI</span>
       </div>
@@ -92,7 +92,7 @@ export function AppLayout() {
       <div className="flex h-16 items-center justify-between border-b border-border bg-card px-4 md:hidden">
         <div className="flex items-center gap-2 font-bold text-card-foreground">
            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white">
-             <span className="font-bold text-sm">CH</span>
+             <span className="font-bold text-sm">CM</span>
            </div>
           <span>CityMind AI</span>
         </div>

@@ -1,52 +1,52 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
-import { db, collection, getDocs, query, orderBy } from '@/lib/firebase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Clock, CheckCircle2, AlertTriangle, ShieldCheck, Zap } from 'lucide-react';
+import { Activity, Clock, CheckCircle2, AlertTriangle, ShieldCheck, Zap, Loader2 } from 'lucide-react';
+import { reportService } from '@/services/reportService';
+import { Report } from '@/types/report';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ total: 0, open: 0, resolved: 0, critical: 0 });
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
+        setLoading(true);
+        setError(null);
+        
+        const fetchedReports = await reportService.getAllReports();
+        
         let open = 0;
         let resolved = 0;
         let critical = 0;
-        const fetchedReports: any[] = [];
         
         const catMap: Record<string, number> = {};
 
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          fetchedReports.push({ id: doc.id, ...data });
+        fetchedReports.forEach((data) => {
           if (data.status === 'Resolved') resolved++;
           else open++;
 
-          if (data.severity === 'Critical') critical++;
+          // Assuming severity doesn't formally exist on Report yet but we had it before, we'll gracefully ignore it if missing, or we can check
+          if ((data as any).severity === 'Critical') critical++;
 
           const cat = data.category || 'Other';
           catMap[cat] = (catMap[cat] || 0) + 1;
         });
 
-        // Seed with data if it's empty to match the design aesthetics (demo sake)
-        if (fetchedReports.length === 0) {
-           setStats({ total: 142, open: 45, resolved: 56, critical: 12 });
-           setReports([{ id: '1', title: 'Burst Pipe - Lincoln St', category: 'Water Supply', severity: 'Critical', risk: 9, status: 'AI Verified'}, { id: '2', title: 'Garbage Overload - Market Sq', category: 'Waste Management', severity: 'High', risk: 7, status: 'In Progress'}]);
-        } else {
-           setStats({ total: fetchedReports.length, open, resolved, critical });
-           setReports(fetchedReports.slice(0, 5));
-        }
-
+        setStats({ total: fetchedReports.length, open, resolved, critical });
+        setReports(fetchedReports);
         setChartData(Object.keys(catMap).map(key => ({ name: key, count: catMap[key] })));
-      } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
+      } catch (err: any) {
+        console.error('Error fetching dashboard stats:', err);
+        setError('Failed to load reports. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     }
     fetchStats();
@@ -159,39 +159,53 @@ export default function Dashboard() {
         </div>
       </div>
     
-      {/* Activity Table mimicking the professional preview */}
-      <Card className="rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-         <table className="w-full text-left text-sm">
-           <thead className="bg-[#F8FAFC] border-b border-slate-200">
-             <tr>
-               <th className="px-6 py-3 font-semibold text-slate-600 tracking-tight">Issue Title</th>
-               <th className="px-6 py-3 font-semibold text-slate-600 tracking-tight">Category</th>
-               <th className="px-6 py-3 font-semibold text-slate-600 tracking-tight">Priority</th>
-               <th className="px-6 py-3 font-semibold text-slate-600 tracking-tight border-r border-[#F8FAFC]">Status</th>
-             </tr>
-           </thead>
-           <tbody className="divide-y divide-slate-100 bg-white">
-              {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-slate-900 tracking-tight max-w-[200px] truncate">{report.title}</td>
-                  <td className="px-6 py-4 text-slate-500 font-medium text-xs">{report.category}</td>
-                  <td className="px-6 py-4">
-                    {report.severity === 'Critical' && <span className="px-2.5 py-1 bg-red-100/80 text-red-700 rounded text-[10px] font-bold uppercase tracking-widest">Critical</span>}
-                    {report.severity === 'High' && <span className="px-2.5 py-1 bg-orange-100/80 text-orange-700 rounded text-[10px] font-bold uppercase tracking-widest">High</span>}
-                    {report.severity === 'Medium' && <span className="px-2.5 py-1 bg-yellow-100/80 text-yellow-700 rounded text-[10px] font-bold uppercase tracking-widest">Medium</span>}
-                    {(!report.severity || report.severity === 'Low') && <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-widest">Low</span>}
-                  </td>
-                  <td className="px-6 py-4 flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${report.status === 'Resolved' ? 'bg-emerald-500' : report.status === 'AI Verified' ? 'bg-blue-500' : 'bg-orange-500 animate-pulse'}`}></div>
-                    <span className="text-xs font-semibold tracking-tight text-slate-700">{report.status || 'Reported'}</span>
-                  </td>
-                </tr>
-              ))}
-           </tbody>
-         </table>
-        </div>
-      </Card>
+      {/* Report Cards */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-slate-800">Recent Reports</h2>
+        
+        {loading ? (
+          <div className="flex justify-center items-center h-48 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <div className="flex flex-col items-center text-slate-500">
+              <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-500" />
+              <p>Loading reports...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-48 bg-red-50 border border-red-100 rounded-xl text-red-600">
+            <p>{error}</p>
+          </div>
+        ) : reports.length === 0 ? (
+          <div className="flex justify-center items-center h-48 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <p className="text-slate-500">No Reports Found</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {reports.map((report) => (
+              <Card key={report.id} className="rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                {report.imageUrl ? (
+                  <img src={report.imageUrl} alt={report.title} className="h-48 w-full object-cover" />
+                ) : (
+                  <div className="h-48 w-full bg-slate-100 flex items-center justify-center text-slate-400">
+                    <span>No Image</span>
+                  </div>
+                )}
+                <CardContent className="p-4 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-widest">{report.category}</span>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${report.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>{report.status || 'Reported'}</span>
+                  </div>
+                  <h3 className="font-bold text-slate-900 leading-tight mb-2">{report.title}</h3>
+                  <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{report.description}</p>
+                  <div className="text-xs text-slate-500 font-medium flex items-center mt-auto pt-4 border-t border-slate-50">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {report.createdAt && typeof report.createdAt.toDate === 'function' ? report.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

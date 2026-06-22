@@ -8,7 +8,7 @@ export default function LandingPage() {
       <header className="px-6 lg:px-8 h-16 flex items-center border-b border-slate-200 bg-white">
         <Link to="/" className="flex items-center justify-center group">
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3 shadow-sm transition-transform group-hover:scale-105">
-            <span className="font-bold text-sm tracking-tight">CH</span>
+            <span className="font-bold text-sm tracking-tight">CM</span>
           </div>
           <span className="font-bold tracking-tight text-slate-800 text-xl">CityMind AI</span>
         </Link>

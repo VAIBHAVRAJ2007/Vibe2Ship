@@ -20,6 +20,7 @@ export default function ReportIssue() {
   const [preview, setPreview] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState('');
   const [userDescription, setUserDescription] = useState('');
   const [location, setLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [locationName, setLocationName] = useState('');
@@ -100,8 +101,8 @@ export default function ReportIssue() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description || !category || !location) {
-      toast.error('Please fill required fields and fetch location.');
+    if (!title || !description || !category || !file) {
+      toast.error('Please fill required fields and upload an image.');
       return;
     }
 
@@ -109,11 +110,16 @@ export default function ReportIssue() {
     try {
       let imageUrl = '';
       if (file) {
-        const storageRef = ref(storage, `issues/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        imageUrl = await getDownloadURL(snapshot.ref);
+        setLoadingStatus('Processing image...');
+        imageUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
       }
 
+      setLoadingStatus('Saving report...');
       await addDoc(collection(db, 'reports'), {
         title,
         description,
@@ -125,7 +131,7 @@ export default function ReportIssue() {
         location,
         locationName,
         status: 'Reported',
-        reporterId: user?.uid,
+        userId: user?.uid,
         reporterName: user?.displayName,
         createdAt: serverTimestamp(),
         upvotes: 0,
@@ -133,12 +139,13 @@ export default function ReportIssue() {
       });
 
       toast.success('Issue reported successfully!');
-      navigate('/app/feed');
+      navigate('/app');
     } catch (error) {
       console.error(error);
       toast.error('Failed to submit report.');
     } finally {
       setIsSubmitting(false);
+      setLoadingStatus('');
     }
   };
 
@@ -249,12 +256,11 @@ export default function ReportIssue() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Roads">Roads (Potholes)</SelectItem>
-                      <SelectItem value="Water Supply">Water Supply (Leaks)</SelectItem>
-                      <SelectItem value="Waste Management">Waste Management</SelectItem>
-                      <SelectItem value="Electricity">Electricity</SelectItem>
-                      <SelectItem value="Street Lighting">Street Lighting</SelectItem>
-                      <SelectItem value="Public Safety">Public Safety</SelectItem>
+                      <SelectItem value="Road Damage">Road Damage</SelectItem>
+                      <SelectItem value="Pothole">Pothole</SelectItem>
+                      <SelectItem value="Water Leakage">Water Leakage</SelectItem>
+                      <SelectItem value="Garbage">Garbage</SelectItem>
+                      <SelectItem value="Street Light">Street Light</SelectItem>
                       <SelectItem value="Drainage">Drainage</SelectItem>
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
@@ -314,8 +320,8 @@ export default function ReportIssue() {
               </div>
             </CardContent>
             <CardFooter className="bg-slate-50 border-t border-slate-100 pt-5 pb-5">
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 font-semibold text-white h-11 shadow-sm" disabled={isSubmitting || !title || !location}>
-                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting Report...</> : 'Submit Civic Report'}
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 font-semibold text-white h-11 shadow-sm" disabled={isSubmitting || !title || !file}>
+                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {loadingStatus || 'Submitting...'}</> : 'Submit Civic Report'}
               </Button>
             </CardFooter>
           </Card>
