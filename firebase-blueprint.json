@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "report": {
+      "title": "Report",
+      "description": "A civic issue report.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "severity": { "type": "string" },
+        "risk": { "type": "number" },
+        "department": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "locationName": { "type": "string" },
+        "status": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "upvotes": { "type": "number" },
+        "verifications": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/reports/{reportId}": {
+      "schema": "report",
+      "description": "Stores user submitted reports."
+    }
+  }
+}
